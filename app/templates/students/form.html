@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+
+{% block title %}{% if student %}Edit Student{% else %}Add New Student{% endif %} - Student Management{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0">{% if student %}Edit Student{% else %}Add New Student{% endif %}</h4>
+            </div>
+            <div class="card-body">
+                <form method="POST"
+                    action="{% if student %}{{ url_for('students.update', student_id=student.student_id) }}{% else %}{{ url_for('students.create') }}{% endif %}">
+                    <!-- Full Name -->
+                    <div class="mb-3">
+                        <label for="full_name" class="form-label">Full Name *</label>
+                        <input type="text" class="form-control" id="full_name" name="full_name"
+                            value="{{ student.full_name if student else '' }}" required>
+                    </div>
+
+                    <!-- Email -->
+                    <div class="mb-3">
+                        <label for="email" class="form-label">Email *</label>
+                        <input type="email" class="form-control" id="email" name="email"
+                            value="{{ student.email if student else '' }}" required>
+                    </div>
+
+                    <!-- Phone Number -->
+                    <div class="mb-3">
+                        <label for="phone_number" class="form-label">Phone Number</label>
+                        <input type="text" class="form-control" id="phone_number" name="phone_number"
+                            value="{{ student.phone_number if student else '' }}">
+                    </div>
+
+                    <!-- Address -->
+                    <div class="mb-3">
+                        <label for="address" class="form-label">Address</label>
+                        <textarea class="form-control" id="address" name="address"
+                            rows="2">{{ student.address if student else '' }}</textarea>
+                    </div>
+
+                    <!-- Date of Birth -->
+                    <div class="mb-3">
+                        <label for="date_of_birth" class="form-label">Date of Birth</label>
+                        <input type="date" class="form-control" id="date_of_birth" name="date_of_birth"
+                            value="{{ student.date_of_birth if student else '' }}">
+                    </div>
+
+                    <!-- Gender -->
+                    <div class="mb-3">
+                        <label for="gender" class="form-label">Gender</label>
+                        <select class="form-select" id="gender" name="gender">
+                            <option value="">-- Select Gender --</option>
+                            <option value="Male" {% if student and student.gender=='Male' %}selected{% endif %}>Male
+                            </option>
+                            <option value="Female" {% if student and student.gender=='Female' %}selected{% endif %}>
+                                Female</option>
+                            <option value="Other" {% if student and student.gender=='Other' %}selected{% endif %}>Other
+                            </option>
+                        </select>
+                    </div>
+
+                    <!-- Program -->
+                    <div class="mb-3">
+                        <label for="program_id" class="form-label">Program *</label>
+                        <select class="form-select" id="program_id" name="program_id" required>
+                            <option value="">-- Select Program --</option>
+                            {% for prog in programs %}
+                            <option value="{{ prog.program_id }}" {% if student and student.program_id==prog.program_id
+                                %}selected{% endif %}>
+                                {{ prog.program_name }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <!-- Enrollment Year -->
+                    <div class="mb-3">
+                        <label for="enrollment_year" class="form-label">Enrollment Year *</label>
+                        <input type="number" class="form-control" id="enrollment_year" name="enrollment_year"
+                            value="{{ student.enrollment_year if student else '' }}" required min="2000">
+                    </div>
+
+                    <!-- Buttons -->
+                    <div class="text-end">
+                        <a href="{{ url_for('students.list') }}" class="btn btn-secondary">Cancel</a>
+                        <button type="submit" class="btn btn-primary">{% if student %}Update{% else %}Add{% endif %}
+                            Student</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

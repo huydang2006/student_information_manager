@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+
+{% block title %}{% if instructor %}Edit Instructor{% else %}Add New Instructor{% endif %} - Student Management{%
+endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0">{% if instructor %}Edit Instructor{% else %}Add New Instructor{% endif %}</h4>
+            </div>
+            <div class="card-body">
+                <form method="POST"
+                    action="{% if instructor %}{{ url_for('instructors.update', instructor_id=instructor.instructor_id) }}{% else %}{{ url_for('instructors.create') }}{% endif %}">
+                    <!-- Full Name -->
+                    <div class="mb-3">
+                        <label for="full_name" class="form-label">Full Name *</label>
+                        <input type="text" class="form-control" id="full_name" name="full_name"
+                            value="{{ instructor.full_name if instructor else '' }}" required>
+                    </div>
+
+                    <!-- Email -->
+                    <div class="mb-3">
+                        <label for="email" class="form-label">Email *</label>
+                        <input type="email" class="form-control" id="email" name="email"
+                            value="{{ instructor.email if instructor else '' }}" required>
+                    </div>
+
+                    <!-- Specialization -->
+                    <div class="mb-3">
+                        <label for="specialization" class="form-label">Specialization</label>
+                        <input type="text" class="form-control" id="specialization" name="specialization"
+                            value="{{ instructor.specialization if instructor else '' }}">
+                    </div>
+
+                    <!-- Office Location -->
+                    <div class="mb-3">
+                        <label for="office_location" class="form-label">Office Location</label>
+                        <input type="text" class="form-control" id="office_location" name="office_location"
+                            value="{{ instructor.office_location if instructor else '' }}">
+                    </div>
+
+                    <!-- Buttons -->
+                    <div class="text-end">
+                        <a href="{{ url_for('instructors.list') }}" class="btn btn-secondary">Cancel</a>
+                        <button type="submit" class="btn btn-primary">{% if instructor %}Update{% else %}Add{% endif %}
+                            Instructor</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
