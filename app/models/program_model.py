@@ -25,29 +25,26 @@ class Program:
         conn.close()
         return course
 
-    # @staticmethod
-    # def search(program_id=None, name=None, program_id=None):
-    #     """Search programs by various criteria"""
-    #     conn = get_connection()
-    #     cursor = conn.cursor(dictionary=True)
+    @staticmethod
+    def search(program_id=None, name=None):
+        """Search programs by various criteria"""
+        conn = get_connection()
+        cursor = conn.cursor(dictionary=True)
 
-    #     query = "SELECT * FROM program WHERE 1=1"
-    #     values = []
+        query = "SELECT * FROM program WHERE 1=1"
+        values = []
 
-    #     if program_id:
-    #         query += " AND program_id = %s"
-    #         values.append(course_id)
-    #     if name:
-    #         query += " AND course_name LIKE %s"
-    #         values.append("%" + name + "%")
-    #     if program_id:
-    #         query += " AND program_id = %s"
-    #         values.append(program_id)
+        if program_id:
+            query += " AND program_id = %s"
+            values.append(program_id)
+        if name:
+            query += " AND program_name LIKE %s"
+            values.append("%" + name + "%")
 
-    #     cursor.execute(query, tuple(values))
-    #     courses = cursor.fetchall()
-    #     conn.close()
-    #     return courses
+        cursor.execute(query, tuple(values))
+        programs = cursor.fetchall()
+        conn.close()
+        return programs
 
     # @staticmethod
     # def create(course_name, course_code, program_id, credits, description):
@@ -87,14 +84,14 @@ class Program:
 
     #     conn.close()
 
-    # @staticmethod
-    # def delete(course_id):
-    #     """Delete a course"""
-    #     conn = get_connection()
-    #     cursor = conn.cursor()
-    #     cursor.execute("DELETE FROM course WHERE course_id = %s", (course_id,))
-    #     conn.commit()
-    #     conn.close()
+    @staticmethod
+    def delete(program_id):
+        """Delete a program"""
+        conn = get_connection()
+        cursor = conn.cursor()
+        cursor.execute("DELETE FROM program WHERE program_id = %s", (program_id,))
+        conn.commit()
+        conn.close()
 
     # @staticmethod
     # def code_exists(course_code):

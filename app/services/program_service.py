@@ -16,32 +16,28 @@ class ProgramService:
         """Get a specific program"""
         return Program.get_by_id(program_id)
 
-    # @staticmethod
-    # def search_courses(course_id=None, name=None, program_id=None):
-    #     """Search courses with filters"""
-    #     return Course.search(course_id, name, program_id)
+    @staticmethod
+    def search_programs(program_id=None, name=None):
+        """Search courses with filters"""
+        return Program.search(program_id, name)
 
-    # @staticmethod
-    # def create_course(data):
-    #     """Create a new course with validation"""
-    #     # Validate data
-    #     errors = validate_course_data(data)
-    #     if errors:
-    #         return False, errors
+    @staticmethod
+    def create_course(data):
+        """Create a new program with validation"""
+        # Validate data
+        errors = validate_program_data(data)
+        if errors:
+            return False, errors
 
-    #     # Check if course code exists
-    #     if Course.code_exists(data.get('course_code')):
-    #         return False, ["Course code already exists"]
-
-    #     # Create course
-    #     Course.create(
-    #         course_name=data.get('course_name'),
-    #         course_code=data.get('course_code'),
-    #         program_id=data.get('program_id'),
-    #         credits=data.get('credits'),
-    #         description=data.get('description')
-    #     )
-    #     return True, "Course created successfully"
+        # Create course
+        Program.create(
+            course_name=data.get('course_name'),
+            course_code=data.get('course_code'),
+            program_id=data.get('program_id'),
+            credits=data.get('credits'),
+            description=data.get('description')
+        )
+        return True, "Course created successfully"
 
     # @staticmethod
     # def update_course(course_id, data):
@@ -64,12 +60,12 @@ class ProgramService:
     #     Course.update(course_id, **data)
     #     return True, "Course updated successfully"
 
-    # @staticmethod
-    # def delete_course(course_id):
-    #     """Delete a course"""
-    #     course = Course.get_by_id(course_id)
-    #     if not course:
-    #         return False, "Course not found"
+    @staticmethod
+    def delete_program(program_id):
+        """Delete a course"""
+        program = Program.get_by_id(program_id)
+        if not program:
+            return False, "Program not found"
 
-    #     Course.delete(course_id)
-    #     return True, "Course deleted successfully"
+        Program.delete(program_id)
+        return True, "Program deleted successfully"

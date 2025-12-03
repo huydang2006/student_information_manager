@@ -1,7 +1,141 @@
 {% extends "base.html" %}
 
-{% block title %}Programs - Student Management{% endblock %}
+{% block title %}Students - Student Management{% endblock %}
 
 {% block content %}
-...
+<div class="row mb-4">
+    <div class="col-md-6">
+        <h1>Programs</h1>
+    </div>
+    <div class="col-md-6 text-end">
+        <a href="{{ url_for('students.create') }}" class="btn btn-primary btn-hover">+ Add New Program</a>
+    </div>
+</div>
+
+<!-- Search Form -->
+<div class="card mb-4 btn-hover">
+    <div class="card-body">
+        <form method="POST" action="{{ url_for('programs.search') }}">
+            <div class="row">
+                <div class="col-md-4">
+                    <input type="text" name="program_id" class="form-control" placeholder="Program ID">
+                </div>
+                <div class="col-md-4">
+                    <input type="text" name="name" class="form-control" placeholder="Program Name">
+                </div>
+                <div class="col-md-4">
+                    <button type="submit" class="btn btn-info w-100 btn-hover text-white">Search</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="rounded-4">
+    <div class="row mb-3">
+        {% for program in programs %}
+        <div class="col-sm-6 mb-3 mt-3 mb-sm-0">
+            <div class="card btn-hover">
+                <div class="card-body ms-3">
+                    <h5 class="card-title fw-bold"> {{ program.program_name }}</h5>
+                    <p class="card-text fw-normal"> <span class="fw-bolder">Code:</span> {{ program.program_id }}</p>
+                    <p class="card-text"> <span class="fw-bolder">Describe:</span> None </p>
+                    <a href="javascript:void(0)" class="btn btn-primary" type="button" data-bs-toggle="modal"
+                        data-bs-target="#infModal" data-id="{{ program.program_id }}"
+                        data-name="{{ program.program_name }}" data-department="{{ program.department }}"
+                        data-year="{{ program.duration_years }}" data-degree="{{ program.degree_type }}"
+                        data-created="{{ program.created_at }}" data-updated="{{ program.updated_at }}">Information</a>
+                    <span class="dropdown">
+                        <button class="btn btn-outline-info dropdown-toggle" type="button" data-bs-toggle="dropdown"
+                            aria-expanded="false">
+                            More
+                        </button>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="#">Edit</a></li>
+                            <li><a class="dropdown-item text-danger" href="#"
+                                    onclick=" deleteProgram('{{ program.program_id }}')">Delete</a></li>
+                        </ul>
+                    </span>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- Modal: Information -->
+<div class="modal fade" id="infModal" tabindex="-1" aria-labelledby="infModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content card btn-hover">
+            <div class="modal-header card-header bg-primary">
+                <h1 class="modal-title fs-5"> <span id="modalProgramName"></span></h1>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <p><strong>Code:</strong> <span id="modalProgramId"></p>
+                        <p><strong>Department:</strong> <span id="modalProgramDepart"></span></p>
+                        <p><strong>Year Duration:</strong> <span id="modalProgramYear"></span></p>
+                        <p><strong>Degree Type:</strong> <span id="modalProgramDegree"></span></p>
+                    </div>
+                    <div class="col-md-6">
+                        <p><strong>Created At:</strong> <span id="modalProgramCreated"></span></p>
+                        <p><strong>Updated At:</strong> <span id="modalProgramUpdated"></span></p>
+                    </div>
+                </div>
+
+                <hr>
+
+                <div>
+                    ...
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<script>
+    function deleteProgram(id) {
+        if (confirm('Are you sure you want to delete this program?')) {
+            fetch(`/programs/delete/${id}`, { method: 'POST' })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        location.reload();
+                    } else {
+                        alert(data.message);
+                    }
+                });
+        }
+    }
+</script>
+
+<script>
+    document.getElementById('infModal').addEventListener('show.bs.modal', function (event) {
+        let button = event.relatedTarget;
+
+        let id = button.getAttribute('data-id');
+        let name = button.getAttribute('data-name');
+        let department = button.getAttribute('data-department');
+        let year = button.getAttribute('data-year');
+        let degree = button.getAttribute('data-degree');
+        let created = button.getAttribute('data-created');
+        let updated = button.getAttribute('data-updated');
+
+        // Gán vào modal
+        document.getElementById('modalProgramId').textContent = id;
+        document.getElementById('modalProgramName').textContent = name;
+        document.getElementById('modalProgramDepart').textContent = department;
+        document.getElementById('modalProgramYear').textContent = year;
+        document.getElementById('modalProgramDegree').textContent = degree;
+        document.getElementById('modalProgramCreated').textContent = created;
+        document.getElementById('modalProgramUpdated').textContent = updated;
+    });
+</script>
 {% endblock %}

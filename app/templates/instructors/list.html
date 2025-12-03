@@ -27,7 +27,7 @@
                     <input type="text" name="special" class="form-control" placeholder="Specialization">
                 </div>
                 <div class="col-md-3">
-                    <button type="submit" class="btn btn-info w-100 btn-hover">Search</button>
+                    <button type="submit" class="btn btn-info w-100 btn-hover text-white">Search</button>
                 </div>
             </div>
         </form>
@@ -66,13 +66,6 @@
                 </div>
             </div>
             <div class="col-md-2 d-flex flex-column justify-content-center align-items-center ms-auto">
-                <!-- <button type="button" class="btn btn-success btn-more m-2" style="width: 100px">
-                    Edit
-                </button>
-                <button type="button" class="btn btn-danger btn-more m-2" style="width: 100px;" data-bs-toggle="modal"
-                    data-bs-target="#modalDeleteInstructor" data-id="{{ instructor.instructor_id }}">
-                    Delete
-                </button> -->
                 <a href="{{ url_for('instructors.update', instructor_id=instructor.instructor_id) }}"
                     class="btn btn-sm btn-warning p-2 m-1 rounded-pill text-white btn-hover"
                     style="width: 70px;">Edit</a>
