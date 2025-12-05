@@ -43,8 +43,8 @@ main_block: BEGIN
         LEAVE main_block;
     END IF;
     -- Insert enrollment
-    INSERT INTO enrollment (student_id, course_id, semester, academic_year, enrolled_date, status)
-    VALUES (p_student_id, p_course_id, p_semester, p_academic_year, CURRENT_TIMESTAMP, 'Enrolled');
+    INSERT INTO enrollment (student_id, course_id, semester, academic_year, status)
+    VALUES (p_student_id, p_course_id, p_semester, p_academic_year, 'Enrolled');
     SET v_enrollment_id = LAST_INSERT_ID();
     SELECT 1 AS success, CONCAT('Success: enrolled, enrollment_id=', v_enrollment_id) AS message;
 END main_block$$
