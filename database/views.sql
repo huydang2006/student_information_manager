@@ -1,5 +1,14 @@
 -- VIEWS
 USE school_db;
+
+-- v_tuition_fee_summary
+CREATE OR REPLACE VIEW v_tuition_fee_summary AS
+SELECT 
+    payment_status,
+    COUNT(*) AS total_count
+FROM tuition_fee
+GROUP BY payment_status;
+
 -- v_students_by_program
 CREATE OR REPLACE VIEW v_students_by_program AS
 SELECT
@@ -10,8 +19,6 @@ SELECT
     s.enrollment_year
 FROM program p
 JOIN student s ON s.program_id = p.program_id
-WHERE p.is_deleted = 0
-  AND s.is_deleted = 0
 ORDER BY p.program_id, s.enrollment_year, s.full_name;
 
 -- v_outstanding_tuition
@@ -31,8 +38,6 @@ SELECT
     END AS payment_status
 FROM tuition_fee tf
 JOIN student s ON s.student_id = tf.student_id
-WHERE tf.is_deleted = 0
-  AND s.is_deleted = 0
 ORDER BY tf.academic_year DESC, tf.semester, s.full_name;
 
 -- v_course_performance
@@ -51,10 +56,7 @@ SELECT
         )
     END AS pass_rate
 FROM course c
-LEFT JOIN enrollment e
-    ON e.course_id = c.course_id
-    AND e.is_deleted = 0
-    AND e.status IN ('Enrolled','Completed','Withdrawn')
-WHERE c.is_deleted = 0
+LEFT JOIN enrollment e ON e.course_id = c.course_id
+WHERE c.course_id IS NOT NULL
 GROUP BY c.course_id, c.course_name
 ORDER BY c.course_id;

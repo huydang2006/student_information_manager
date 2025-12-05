@@ -24,7 +24,6 @@ CREATE TABLE program (
     department VARCHAR(100),
     duration_years INT UNSIGNED DEFAULT 4,
     degree_type ENUM('Bachelor','Master','PhD') DEFAULT 'Bachelor',
-    is_deleted TINYINT(1) DEFAULT 0,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -40,7 +39,6 @@ CREATE TABLE student (
     address VARCHAR(255) DEFAULT NULL,
     program_id INT,
     enrollment_year YEAR,
-    is_deleted TINYINT(1) DEFAULT 0,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     CONSTRAINT fk_student_program
@@ -55,7 +53,6 @@ CREATE TABLE instructor (
     email VARCHAR(100) UNIQUE,
     specialization VARCHAR(255),
     office_location VARCHAR(100),
-    is_deleted TINYINT(1) DEFAULT 0,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -68,7 +65,6 @@ CREATE TABLE course (
     semester_offered ENUM('Spring','Summer','Fall') DEFAULT 'Spring',
     program_id INT DEFAULT NULL,
     instructor_id INT DEFAULT NULL,
-    is_deleted TINYINT(1) DEFAULT 0,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     CONSTRAINT fk_course_program
@@ -88,7 +84,6 @@ CREATE TABLE enrollment (
     academic_year YEAR,
     grade DECIMAL(5,2) DEFAULT NULL,
     status ENUM('Enrolled','Completed','Withdrawn') DEFAULT 'Enrolled',
-    is_deleted TINYINT(1) DEFAULT 0,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     UNIQUE(student_id, course_id, semester, academic_year),
@@ -109,7 +104,6 @@ CREATE TABLE tuition_fee (
     total_amount DECIMAL(10,2) NOT NULL,
     amount_paid DECIMAL(10,2) DEFAULT 0,
     payment_status ENUM('Unpaid','Partially Paid','Fully Paid') DEFAULT 'Unpaid',
-    is_deleted TINYINT(1) DEFAULT 0,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     CHECK (amount_paid >= 0 AND total_amount >= 0),
@@ -129,9 +123,6 @@ CREATE TABLE payment (
     transaction_code VARCHAR(100) DEFAULT NULL,
     collected_by VARCHAR(100) DEFAULT NULL,
     remarks VARCHAR(255),
-    is_deleted TINYINT(1) DEFAULT 0,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     CHECK (amount > 0),
     CONSTRAINT fk_payment_fee
       FOREIGN KEY (fee_id) REFERENCES tuition_fee(fee_id)
@@ -144,7 +135,6 @@ CREATE TABLE advisor_assignment (
     instructor_id INT NOT NULL,
     student_id INT NOT NULL,
     assigned_date DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    is_deleted TINYINT(1) DEFAULT 0,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     UNIQUE(student_id),
@@ -156,29 +146,3 @@ CREATE TABLE advisor_assignment (
       ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- TRIGGER
-DELIMITER $$
-DROP TRIGGER IF EXISTS trg_after_payment_insert$$
-CREATE TRIGGER trg_after_payment_insert
-AFTER INSERT ON payment
-FOR EACH ROW
-BEGIN
-    DECLARE v_total_paid DECIMAL(18,2);
-    -- Recalculate total paid 
-    SELECT IFNULL(SUM(amount), 0.00) INTO v_total_paid
-    FROM payment
-    WHERE fee_id = NEW.fee_id
-      AND is_deleted = 0;
-    -- Update tuition_fee.amount_paid and payment_status
-    UPDATE tuition_fee
-    SET amount_paid = v_total_paid,
-        payment_status =
-            CASE
-                WHEN v_total_paid >= total_amount THEN 'Fully Paid'
-                WHEN v_total_paid > 0 AND v_total_paid < total_amount THEN 'Partially Paid'
-                ELSE 'Unpaid'
-            END,
-        updated_at = CURRENT_TIMESTAMP
-    WHERE fee_id = NEW.fee_id;
-END$$
-DELIMITER ;

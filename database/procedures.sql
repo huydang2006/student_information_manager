@@ -1,6 +1,7 @@
 -- STORED PROCEDURES
 USE school_db;
 DELIMITER $$
+
 -- sp_register_course
 DROP PROCEDURE IF EXISTS sp_register_course$$
 CREATE PROCEDURE sp_register_course(
@@ -14,18 +15,18 @@ main_block: BEGIN
     DECLARE v_exists_course INT;
     DECLARE v_already_enrolled INT;
     DECLARE v_enrollment_id INT;
-    -- check student exists and is not deleted
+    -- check student exists
     SELECT COUNT(*) INTO v_exists_student
     FROM student
-    WHERE student_id = p_student_id AND is_deleted = 0;
+    WHERE student_id = p_student_id;
     IF v_exists_student = 0 THEN
         SELECT 0 AS success, CONCAT('Failure: student_id ', p_student_id, ' does not exist or is deleted.') AS message;
         LEAVE main_block;
     END IF;
-    -- check course exists and is not deleted
+    -- check course exists
     SELECT COUNT(*) INTO v_exists_course
     FROM course
-    WHERE course_id = p_course_id AND is_deleted = 0;
+    WHERE course_id = p_course_id;
     IF v_exists_course = 0 THEN
         SELECT 0 AS success, CONCAT('Failure: course_id ', p_course_id, ' does not exist or is deleted.') AS message;
         LEAVE main_block;
@@ -63,25 +64,66 @@ BEGIN
         COUNT(DISTINCT tf.student_id) AS num_students_billed,
         ROUND(IFNULL(SUM(pay.amount),0), 2) AS total_revenue_collected
     FROM tuition_fee tf
-    JOIN student s ON s.student_id = tf.student_id AND s.is_deleted = 0
-    LEFT JOIN program pr ON pr.program_id = s.program_id AND pr.is_deleted = 0
-    LEFT JOIN payment pay ON pay.fee_id = tf.fee_id AND pay.is_deleted = 0
-    WHERE tf.is_deleted = 0
-      AND tf.academic_year = p_academic_year
+    JOIN student s ON s.student_id = tf.student_id
+    LEFT JOIN program pr ON pr.program_id = s.program_id
+    LEFT JOIN payment pay ON pay.fee_id = tf.fee_id
+    WHERE tf.academic_year = p_academic_year
       AND tf.semester = p_semester
     GROUP BY pr.program_id, pr.program_name
     ORDER BY total_revenue_collected DESC;
-    -- Overall totals
+    -- totals
     SELECT
         NULL AS program_id,
         'ALL PROGRAMS' AS program_name,
         COUNT(DISTINCT tf.student_id) AS num_students_billed,
         ROUND(IFNULL(SUM(pay.amount),0), 2) AS total_revenue_collected
     FROM tuition_fee tf
-    LEFT JOIN payment pay ON pay.fee_id = tf.fee_id AND pay.is_deleted = 0
+    LEFT JOIN payment pay ON pay.fee_id = tf.fee_id 
     WHERE tf.is_deleted = 0
       AND tf.academic_year = p_academic_year
       AND tf.semester = p_semester;
 END$$
 DELIMITER ;
 
+
+-- sp_courses_by_program
+DROP PROCEDURE IF EXISTS sp_courses_by_program$$
+CREATE PROCEDURE sp_courses_by_program(
+    IN p_program_id INT
+)
+BEGIN
+    SELECT 
+        c.course_id,
+        c.course_name,
+        c.credit_hours,
+        c.semester_offered,
+        p.program_name,
+        i.full_name AS instructor_name
+    FROM course c
+    LEFT JOIN program p ON c.program_id = p.program_id
+    LEFT JOIN instructor i ON c.instructor_id = i.instructor_id
+    WHERE c.program_id = p_program_id;
+END$$
+
+-- sp_enrollments_by_student
+DROP PROCEDURE IF EXISTS sp_enrollments_by_student$$
+CREATE PROCEDURE sp_enrollments_by_student(
+    IN p_student_id INT
+)
+BEGIN
+    SELECT
+        e.enrollment_id,
+        s.full_name AS student_name,
+        c.course_name,
+        e.semester,
+        e.academic_year,
+        e.grade,
+        e.status
+    FROM enrollment e
+    INNER JOIN student s ON e.student_id = s.student_id
+    INNER JOIN course c ON e.course_id = c.course_id
+    WHERE e.student_id = p_student_id
+    ORDER BY e.academic_year DESC, e.semester;
+END$$
+
+DELIMITER ;
