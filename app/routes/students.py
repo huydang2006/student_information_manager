@@ -2,6 +2,8 @@
 from flask import Blueprint, render_template, request, redirect, url_for, jsonify, flash
 from app.services.student_service import StudentService
 from app.models.program_model import Program
+from app.models.course_model import Course
+
 
 students_bp = Blueprint('students', __name__, url_prefix='/students', template_folder='../templates')
 
@@ -18,10 +20,11 @@ def view(student_id):
     """View student details"""
     student = StudentService.get_student_by_id(student_id)
     enrollments = StudentService.get_enrollments_student(student_id)
+    courses = Course.get_all()
     if not student:
         flash('Student not found', 'danger')
         return redirect(url_for('students.list'))
-    return render_template('students/detail.html', student=student, enrollments=enrollments)
+    return render_template('students/detail.html', student=student, enrollments=enrollments, courses=courses)
 
 
 @students_bp.route('/search', methods=['GET', 'POST'])
@@ -127,3 +130,41 @@ def deleteEnrollment(enrollment_id):
     if success:
         return jsonify({'success': True, 'message': message})
     return jsonify({'success': False, 'message': message}), 400
+
+@students_bp.route('/addenrollment/<int:student_id>', methods=['GET', 'POST'])
+def add_enrollment(student_id):
+    """Create a new enrollment"""
+
+    # Handle POST request
+    data = {
+        'student_id': student_id,
+        'course_id': request.form.get('course_id'),
+        'semester': request.form.get('semester'),
+        'academic_year': request.form.get('academic_year')
+    }
+
+    success, message = StudentService.create_enrollment(data)
+    if success:
+        flash(message, 'success')
+        return redirect(url_for('students.view', student_id=student_id))
+    else:
+        flash(message if isinstance(message, str) else ', '.join(message), 'danger')
+        return redirect(url_for('students.view', student_id=student_id))
+    
+
+@students_bp.route('/updateEnrollment/<int:student_id>', methods=['GET', 'POST'])
+def updateEnrollment(student_id):
+    # Handle POST request
+
+    enrollment_id = request.form.get('enrollment_id')
+    academic_year = request.form.get('academic_year')
+    grade = request.form.get('grade')
+    status = request.form.get('status')
+
+    success, message = StudentService.update_enrollment(enrollment_id, academic_year, grade, status)
+    if success:
+        flash(message, 'success')
+        return redirect(url_for('students.view', student_id=student_id))
+    else:
+        flash(message if isinstance(message, str) else ', '.join(message), 'danger')
+        return redirect(url_for('students.view', student_id=student_id))

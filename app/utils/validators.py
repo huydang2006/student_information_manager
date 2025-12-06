@@ -103,3 +103,24 @@ def validate_program_data(data, is_update=False):
             errors.append("Duration Years must be a number")
 
     return errors
+
+def validate_enrollment_data(data, is_update=False):
+    """Validate program data"""
+    errors = []
+
+    # if not is_update:
+    #     # Required fields for creation
+    #     if not data.get('program_name'):
+    #         errors.append("Program name is required")
+    #     if not data.get('department'):
+    #         errors.append("department")
+    #     if not data.get('degree_type'):
+    #         errors.append("Degree Type is required")
+
+    # Conditional validations
+    if data.get('academic_year'):
+        credits = int(data.get('academic_year'))
+        if credits < 2024 or credits > 2050:
+            errors.append("Duration Years must be between 2024 and 2050")
+
+    return errors

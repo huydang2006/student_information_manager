@@ -1,6 +1,6 @@
 # app/services/student_service.py
 from app.models.student_model import Student
-from app.utils.validators import validate_student_data, validate_email
+from app.utils.validators import validate_student_data, validate_email, validate_enrollment_data
 
 
 class StudentService:
@@ -109,3 +109,36 @@ class StudentService:
 
         Student.deleteEnrollment(enrollment_id)
         return True, "Enrollment deleted successfully"
+    
+    @staticmethod
+    def create_enrollment(data):
+        """Create a new enrollment with validation"""
+        # Validate data
+        errors = validate_enrollment_data(data)
+        if errors:
+            return False, errors
+
+        # # Clean empty optional fields
+        # date_of_birth = data.get('date_of_birth')
+        # date_of_birth = None if not date_of_birth or date_of_birth.strip() == '' else date_of_birth
+        
+        # phone_number = data.get('phone_number')
+        # phone_number = None if not phone_number or phone_number.strip() == '' else phone_number
+        
+        # address = data.get('address')
+        # address = None if not address or address.strip() == '' else address
+
+        # Create enrollment
+        Student.createEnrollment(
+            student_id=data.get('student_id'),
+            course_id=data.get('course_id'),
+            semester=data.get('semester'),
+            academic_year=data.get('academic_year'),
+        )
+        return True, "Enrollment added successfully"
+
+
+    @staticmethod
+    def update_enrollment(enrollment_id, academic_year, grade, status):
+        Student.updateenrollment(enrollment_id, academic_year, grade, status)
+        return True, "Enrollment updated successfully"

@@ -116,3 +116,45 @@ class Program:
         conn.close()
 
         return result['cnt'] > 0
+
+    @staticmethod
+    def add_course(course_name, credit_hours, semester, program_id, instructor_id):
+        try:
+            conn = get_connection()
+            cursor = conn.cursor()
+            cursor.execute(
+                """
+                INSERT INTO course
+                    (course_name, credit_hours, semester_offered, program_id, instructor_id)
+                VALUES (%s, %s, %s, %s, %s)
+                """,
+                (course_name, credit_hours, semester, program_id, instructor_id)
+            )
+            conn.commit()
+            return True, "Course added successfully"
+        except Exception as e:
+            conn.rollback()
+            return False, str(e)
+        finally:
+            conn.close()
+
+    def updatecourse(course_id, **kwargs):
+        """Update Program fields dynamically"""
+        conn = get_connection()
+        cursor = conn.cursor()
+
+        fields = []
+        values = []
+
+        for key, value in kwargs.items():
+            if value is not None:
+                fields.append(f"{key} = %s")
+                values.append(value)
+
+        if fields:
+            query = f"UPDATE course SET {', '.join(fields)} WHERE course_id = %s"
+            values.append(course_id)
+            cursor.execute(query, tuple(values))
+            conn.commit()
+
+        conn.close()

@@ -57,7 +57,7 @@ class Tuition:
             query += " AND s.fee_id = %s"
             values.append(fee_id)
         if name:
-            query += " AND s.full_name LIKE %s"
+            query += " AND p.full_name LIKE %s"
             values.append("%" + name + "%")
         if semester:
             query += " AND s.semester = %s"
@@ -79,3 +79,69 @@ class Tuition:
         cursor.execute("DELETE FROM tuition_fee WHERE fee_id = %s", (fee_id,))
         conn.commit()
         conn.close()
+
+    @staticmethod
+    def update(fee_id, **kwargs):
+        """Update Tuition fields dynamically"""
+        conn = get_connection()
+        cursor = conn.cursor()
+
+        fields = []
+        values = []
+
+        for key, value in kwargs.items():
+            if value is not None:
+                fields.append(f"{key} = %s")
+                values.append(value)
+
+        if fields:
+            query = f"UPDATE tuition_fee SET {', '.join(fields)} WHERE fee_id = %s"
+            values.append(fee_id)
+            cursor.execute(query, tuple(values))
+            conn.commit()
+
+        conn.close()
+
+    @staticmethod
+    def add_payment(fee_id, amount, payment_method, code, collected_by, remarks):
+        """ add payment"""
+        conn = get_connection()
+        cursor = conn.cursor()
+
+        try:
+            cursor.execute("""
+                INSERT INTO payment (fee_id, amount, payment_method, transaction_code, collected_by, remarks)
+                VALUES (%s, %s, %s, %s, %s, %s)
+            """, (fee_id, amount, payment_method, code, collected_by, remarks))
+
+            conn.commit()
+
+        except Exception as e:
+            conn.rollback()
+            raise e
+
+        finally:
+            cursor.close()
+            conn.close()
+
+    @staticmethod
+    def add_tuition(student_id, semester, academic_year, total_amount):
+        """ add payment"""
+        conn = get_connection()
+        cursor = conn.cursor()
+
+        try:
+            cursor.execute("""
+                INSERT INTO tuition_fee (student_id, academic_year, semester, total_amount)
+                VALUES (%s, %s, %s, %s)
+            """, (student_id, academic_year, semester, total_amount))
+
+            conn.commit()
+
+        except Exception as e:
+            conn.rollback()
+            raise e
+
+        finally:
+            cursor.close()
+            conn.close()

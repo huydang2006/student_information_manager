@@ -34,7 +34,7 @@
         <div class="col-6">
             <p class="fw-bolder">Enrollment Year : <span class="fw-normal">{{ student.enrollment_year }}</span></p>
             <p class="fw-bolder">Program : <span class="fw-normal">{{ student.program_name }}</span></p>
-            <p class="fw-bolder">Advisor : <span class="fw-normal">None</span></p>
+            <p class="fw-bolder">Advisor : <span class="fw-normal">{{ student.advisor_name }}</span></p>
             <p class="fw-bolder">Email : <span class="fw-normal">{{ student.email }}</span></p>
         </div>
     </div>
@@ -42,8 +42,9 @@
     <div class="px-4 py-2 row">
         <h2 class="col-6">Enrollment</h2>
         <div class="col-md-6 text-end">
-            <a href="{{ url_for('students.update', student_id=student.student_id) }}" class="btn btn-primary rounded-4"
-                type="button">+ Add</a>
+            <button type="button" class="btn btn-primary rounded-4" data-bs-toggle="modal" data-bs-target="#AddModal">
+                + Add
+            </button>
         </div>
     </div>
     <div class="px-4">
@@ -75,7 +76,9 @@
                         <td>{{ erm.grade }}</td>
                         <td>{{ erm.status }}</td>
                         <td>
-                            <button class="btn btn-outline-warning" href="#">
+                            <button class="btn btn-outline-warning" type="button" data-bs-toggle="modal"
+                                data-bs-target="#exampleModal" data-bs-whatever="{{ erm.academic_year }}"
+                                data-bs-id="{{ erm.enrollment_id }}">
                                 <i class="bi bi-pencil-square"></i>
                             </button>
                             <button class="btn btn-outline-danger"
@@ -91,7 +94,91 @@
     </div>
 </div>
 
+<!-- AddModal -->
+<form method="POST" action="{{ url_for('students.add_enrollment', student_id=student.student_id) }}">
+    <div class="modal fade" id="AddModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h1 class="modal-title fs-5" id="exampleModalLabel">Add Enrollment</h1>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-floating mb-4">
+                        <select class="form-select" id="floatingSelectGrid" name="course_id" required>
+                            <option value="" disabled selected>--- Select Course ---</option>
+                            {% for course in courses %}
+                            <option value="{{ course.course_id }}">{{ course.course_name }}</option>
+                            {% endfor %}
+                        </select>
+                        <label for="floatingSelectGrid" class="fw-bold">Course</label>
+                    </div>
+                    <div class="form-floating mb-4">
+                        <select class="form-select" id="floatingSelectGrid" name="semester" required>
+                            <option value="" disabled selected>--- Select Semester ---</option>
+                            <option value="Spring">Spring</option>
+                            <option value="Summer">Summer</option>
+                            <option value="Fall">Fall</option>
+                        </select>
+                        <label for="floatingSelectGrid" class="fw-bold">Semester</label>
+                    </div>
+                    <div class="form-floating">
+                        <input type="number" class="form-control" id="floatingInput" name="academic_year"
+                            placeholder="name@example.com" required>
+                        <label for="floatingInput">Academic Year</label>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button class="btn btn-primary" type="submit">Add</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
 
+<!-- Update enrollment Modal -->
+<form method="POST" action="{{ url_for('students.updateEnrollment', student_id=student.student_id )}}">
+    <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h1 class="modal-title fs-5" id="exampleModalLabel">Edit Enrollment</h1>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-floating mb-4">
+                        <input type="number" class="form-control" id="modal-input-id" name="enrollment_id"
+                            placeholder="name@example.com" readonly>
+                        <label for="floatingInput">Enrollment ID</label>
+                    </div>
+                    <div class="form-floating mb-4">
+                        <input type="number" class="form-control" id="modal-input-recipient" name="academic_year"
+                            placeholder="name@example.com" required>
+                        <label for="floatingInput">Academic Year</label>
+                    </div>
+                    <div class="form-floating mb-4">
+                        <input type="text" class="form-control" name="grade" placeholder="name@example.com" required>
+                        <label for="floatingInput">Grade</label>
+                    </div>
+                    <div class="form-floating mb-4">
+                        <select class="form-select" id="floatingSelectGrid" name="status" required>
+                            <option value="None" disabled selected>--- Select Status ---</option>
+                            <option value="Enrolled">Enrolled</option>
+                            <option value="Completed">Completed</option>
+                            <option value="Withdrawn">Withdrawn</option>
+                        </select>
+                        <label for="floatingSelectGrid" class="fw-bold">Status</label>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-primary">Save Change</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
 
 <script>
     function deleteStudent(id) {
@@ -122,6 +209,27 @@
                     }
                 });
         }
+    }
+</script>
+
+
+<script>
+    const exampleModal = document.getElementById('exampleModal')
+    if (exampleModal) {
+        exampleModal.addEventListener('show.bs.modal', event => {
+            // Button that triggered the modal
+            const button = event.relatedTarget
+            // Extract info from data-bs-* attributes
+            const recipient = button.getAttribute('data-bs-whatever')
+            const id = button.getAttribute('data-bs-id')
+            // If necessary, you could initiate an Ajax request here
+            // and then do the updating in a callback.
+
+            // Update the modal's content.
+            // Với input
+            exampleModal.querySelector('#modal-input-recipient').value = recipient
+            exampleModal.querySelector('#modal-input-id').value = id
+        })
     }
 </script>
 {% endblock %}

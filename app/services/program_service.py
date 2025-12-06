@@ -85,3 +85,15 @@ class ProgramService:
         # Update student
         Program.update(program_id, **data)
         return True, "Program updated successfully"
+    
+    @staticmethod
+    def update_course(course_id, data):
+        """Update program with validation"""
+        # Validate data
+        # errors = validate_program_data(data, is_update=True)
+        # if errors:
+        #     return False, errors
+
+        # Update student
+        Program.updatecourse(course_id, **data)
+        return True, "Course updated successfully"

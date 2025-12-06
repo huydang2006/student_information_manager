@@ -16,16 +16,18 @@ class Course:
     
     @staticmethod
     def get_by_program_id(program_id):
-        """Get Courrse By ID Program"""
         conn = get_connection()
         cursor = conn.cursor(dictionary=True)
 
-        query = "SELECT * FROM course WHERE program_id = %s"
+        cursor.callproc("sp_courses_by_program", [program_id])
 
-        cursor.execute(query, (program_id,))
-        courses = cursor.fetchall()
+        # Đọc kết quả SELECT từ procedure
+        for result in cursor.stored_results():
+            data = result.fetchall()
+
+        cursor.close()
         conn.close()
-        return courses
+        return data
     
     @staticmethod
     def delete(course_id):

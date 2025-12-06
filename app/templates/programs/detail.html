@@ -35,7 +35,9 @@
     <div class="px-4 py-2 row">
         <h2 class="col-6">Courses</h2>
         <div class="col-md-6 text-end">
-            <a href="#" class="btn btn-primary rounded-4" type="button">+ Add</a>
+            <button type="button" class="btn btn-primary rounded-4" data-bs-toggle="modal" data-bs-target="#AddModal">
+                + Add
+            </button>
         </div>
     </div>
     <div class="px-4">
@@ -63,12 +65,13 @@
                         <td>{{ co.course_name }}</td>
                         <td>{{ co.credit_hours }}</td>
                         <td>{{ co.semester_offered }}</td>
-                        <td>{{ co.instructor_id }}</td>
+                        <td>{{ co.instructor_name }}</td>
                         <td>
-                            <button class="btn btn-outline-warning" href="#">
+                            <button class="btn btn-outline-warning" id="#UpdateModal" data-bs-toggle="modal"
+                                data-bs-target="#UpdateModal" data-bs-course-id="{{ co.course_id }}">
                                 <i class="bi bi-pencil-square"></i>
                             </button>
-                            <button class="btn btn-outline-danger" onclick="deleteEnrollment('{{ course.course_id }}')">
+                            <button class="btn btn-outline-danger" onclick="deleteCourse('{{ co.course_id }}')">
                                 <i class="bi bi-trash"></i>
                             </button>
                         </td>
@@ -113,4 +116,116 @@
         }
     }
 </script>
+
+<!-- AddModal -->
+<form method="POST" action="{{ url_for('programs.addcourse', program_id=program.program_id)}}">
+    <div class="modal fade" id="AddModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h1 class="modal-title fs-5" id="exampleModalLabel">Add Enrollment</h1>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-floating mb-4">
+                        <input type="text" class="form-control" id="floatingInput" name="course_name"
+                            placeholder="name@example.com" required>
+                        <label for="floatingInput">New Course Name</label>
+                    </div>
+                    <div class="form-floating mb-4">
+                        <input type="number" class="form-control" id="floatingInput" name="credit_hours"
+                            placeholder="name@example.com" required>
+                        <label for="floatingInput">Credit Hours</label>
+                    </div>
+                    <div class="form-floating mb-4">
+                        <select class="form-select" id="floatingSelectGrid" name="semester" required>
+                            <option value="" disabled selected>--- Select Semester ---</option>
+                            <option value="Spring">Spring</option>
+                            <option value="Summer">Summer</option>
+                            <option value="Fall">Fall</option>
+                        </select>
+                        <label for="floatingSelectGrid" class="fw-bold">Semester</label>
+                    </div>
+
+                    <div class="form-floating mb-4">
+                        <select class="form-select" id="floatingSelectGrid" name="instructor_id" required>
+                            <option value="" disabled selected>--- Select Instructor ---</option>
+                            {% for instructor in instructors %}
+                            <option value="{{ instructor.instructor_id }}">{{ instructor.full_name }}</option>
+                            {% endfor %}
+                        </select>
+                        <label for="floatingSelectGrid" class="fw-bold">Instructor</label>
+                    </div>
+
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button class="btn btn-primary" type="submit">Add</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+
+<!-- Update Course Modal -->
+<form method="POST" action="{{ url_for('programs.updatecourse', program_id=program.program_id )}}">
+    <div class="modal fade" id="UpdateModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h1 class="modal-title fs-5" id="exampleModalLabel">Edit Course</h1>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-floating mb-4">
+                        <input type="number" class="form-control" id="modal-course-id" name="course_id"
+                            placeholder="name@example.com" readonly>
+                        <label for="floatingInput">Course ID</label>
+                    </div>
+                    <div class="form-floating mb-4">
+                        <input type="number" class="form-control" id="floatingInput" name="credit_hours"
+                            placeholder="name@example.com" required>
+                        <label for="floatingInput">Credit Hours</label>
+                    </div>
+                    <div class="form-floating mb-4">
+                        <select class="form-select" id="floatingSelectGrid" name="semester" required>
+                            <option value="" disabled selected>--- Select Semester ---</option>
+                            <option value="Spring">Spring</option>
+                            <option value="Summer">Summer</option>
+                            <option value="Fall">Fall</option>
+                        </select>
+                        <label for="floatingSelectGrid" class="fw-bold">Semester</label>
+                    </div>
+
+                    <div class="form-floating mb-4">
+                        <select class="form-select" id="floatingSelectGrid" name="instructor_id" required>
+                            <option value="" disabled selected>--- Select Instructor ---</option>
+                            {% for instructor in instructors %}
+                            <option value="{{ instructor.instructor_id }}">{{ instructor.full_name }}</option>
+                            {% endfor %}
+                        </select>
+                        <label for="floatingSelectGrid" class="fw-bold">Instructor</label>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-primary">Save Change</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+
+<script>
+    const exampleModal = document.getElementById('UpdateModal')
+    if (exampleModal) {
+        exampleModal.addEventListener('show.bs.modal', event => {
+            const button = event.relatedTarget
+            const courseId = button.getAttribute('data-bs-course-id')
+
+            exampleModal.querySelector('#modal-course-id').value = courseId
+        })
+    }
+</script>
+
 {% endblock %}

@@ -30,9 +30,17 @@ class Student:
         cursor = conn.cursor(dictionary=True)
         cursor.execute(
             """
-            SELECT s.*, p.program_name
+            SELECT 
+                s.*,
+                p.program_name,
+                i.full_name AS advisor_name
             FROM student s
-            LEFT JOIN program p ON s.program_id = p.program_id
+            LEFT JOIN program p 
+                ON s.program_id = p.program_id
+            LEFT JOIN advisor_assignment aa 
+                ON s.student_id = aa.student_id
+            LEFT JOIN instructor i 
+                ON aa.instructor_id = i.instructor_id
             WHERE s.student_id = %s
             """,
             (student_id,)
@@ -165,5 +173,38 @@ class Student:
         conn = get_connection()
         cursor = conn.cursor()
         cursor.execute("DELETE FROM enrollment WHERE enrollment_id = %s", (enrollment_id,))
+        conn.commit()
+        conn.close()
+
+    @staticmethod
+    def createEnrollment(student_id, course_id, semester, academic_year, grade = None, status = 'Enrolled'):
+        """Create a new enrollment"""
+        conn = get_connection()
+        cursor = conn.cursor()
+        
+        cursor.execute(
+            """
+            INSERT INTO enrollment
+            (student_id, course_id, semester, academic_year, grade, status)
+            VALUES (%s, %s, %s, %s, %s, %s)
+            """,
+            (student_id, course_id, semester, academic_year, grade, status)
+        )
+        conn.commit()
+        conn.close()
+
+    @staticmethod
+    def updateenrollment(enrollment_id, academic_year, grade, status):
+        conn = get_connection()
+        cursor = conn.cursor()
+
+        query = """
+            UPDATE enrollment
+            SET academic_year = %s,
+                grade = %s,
+                status = %s
+            WHERE enrollment_id = %s
+        """
+        cursor.execute(query, (academic_year, grade, status, enrollment_id,))
         conn.commit()
         conn.close()
