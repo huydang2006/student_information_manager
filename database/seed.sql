@@ -1,3 +1,4 @@
+-- seed.sql
 -- Seed data for school_db
 USE school_db;
 -- PROGRAMS (3)

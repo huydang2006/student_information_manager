@@ -1,4 +1,4 @@
--- TRIGGER
+-- trigger.sql
 DELIMITER $$
 
 -- trg_before_payment_insert

@@ -1,4 +1,4 @@
--- VIEWS
+-- views.sql
 USE school_db;
 
 -- v_tuition_fee_summary
