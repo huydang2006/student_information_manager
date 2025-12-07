@@ -1,9 +1,11 @@
 # app/routes/students.py
-from flask import Blueprint, render_template, request, redirect, url_for, jsonify, flash
+from flask import Blueprint, render_template, request, redirect, url_for, jsonify, flash, Response
 from app.services.student_service import StudentService
+from app.models.student_model import Student
 from app.models.program_model import Program
 from app.models.course_model import Course
-
+import csv
+from io import StringIO
 
 students_bp = Blueprint('students', __name__, url_prefix='/students', template_folder='../templates')
 
@@ -168,3 +170,31 @@ def updateEnrollment(student_id):
     else:
         flash(message if isinstance(message, str) else ', '.join(message), 'danger')
         return redirect(url_for('students.view', student_id=student_id))
+    
+@students_bp.route("/export/grade-distribution")
+def export_grade_distribution():
+    # Lấy dữ liệu từ SQL
+    data = Student.get_all()
+    # data là danh sách dict: [{"grade_range": "0-1", "total_students": 20}, ...]
+
+    # Tạo buffer CSV trong RAM
+    si = StringIO()
+    writer = csv.writer(si)
+
+    # Ghi header
+    writer.writerow(["student_id","full_name","date_of_birth","gender","email","phone_number","address","program_id","enrollment_year"])
+
+    # Ghi từng dòng
+    for row in data:
+        writer.writerow([row["student_id"], row["full_name"], row["date_of_birth"], row["gender"], row["email"], row["phone_number"], row["address"], row["program_id"], row["enrollment_year"]])
+
+    # Tạo response để tải xuống
+    output = si.getvalue()
+    response = Response(
+        output,
+        mimetype="text/csv",
+        headers={
+            "Content-Disposition": "attachment; filename=student_information.csv"
+        }
+    )
+    return response

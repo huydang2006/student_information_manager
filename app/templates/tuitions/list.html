@@ -234,18 +234,40 @@
     }
 </script>
 
-<!-- Script delete -->
 <script>
     function deleteTuition(id) {
-        if (confirm('Are you sure you want to delete this tuition?')) {
-            fetch(`/tuitions/delete/${id}`, { method: 'POST' })
-                .then(response => response.json())
+        if (!id) {
+            alert("Lỗi: Không có ID để xóa!");
+            return;
+        }
+
+        if (confirm('Bạn có chắc muốn xóa không?')) {
+            console.log("Đang xóa ID:", id); // Kiểm tra xem ID có đúng không
+
+            fetch(`/financial/delete/${id}`, { method: 'POST' })
+                .then(response => {
+                    // Kiểm tra xem server trả về JSON hay HTML lỗi
+                    const contentType = response.headers.get("content-type");
+                    if (contentType && contentType.indexOf("application/json") !== -1) {
+                        return response.json();
+                    } else {
+                        // Nếu server trả về HTML (Lỗi 500 crash), ném lỗi ra
+                        throw new Error("Server trả về lỗi HTML thay vì JSON (Có thể do code Python bị crash).");
+                    }
+                })
                 .then(data => {
+                    console.log("Server phản hồi:", data); // Xem data server trả về là gì
+
                     if (data.success) {
                         location.href = '{{ url_for("tuitions.list") }}';
                     } else {
-                        alert(data.message);
+                        // Nếu message bị undefined, thay thế bằng thông báo mặc định
+                        alert(data.message || "Xóa thất bại (Lỗi không xác định từ Server)");
                     }
+                })
+                .catch(error => {
+                    console.error('Lỗi JS:', error);
+                    alert("Đã xảy ra lỗi: " + error.message);
                 });
         }
     }

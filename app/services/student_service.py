@@ -118,16 +118,6 @@ class StudentService:
         if errors:
             return False, errors
 
-        # # Clean empty optional fields
-        # date_of_birth = data.get('date_of_birth')
-        # date_of_birth = None if not date_of_birth or date_of_birth.strip() == '' else date_of_birth
-        
-        # phone_number = data.get('phone_number')
-        # phone_number = None if not phone_number or phone_number.strip() == '' else phone_number
-        
-        # address = data.get('address')
-        # address = None if not address or address.strip() == '' else address
-
         # Create enrollment
         Student.createEnrollment(
             student_id=data.get('student_id'),

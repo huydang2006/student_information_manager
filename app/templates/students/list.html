@@ -9,6 +9,9 @@
     </div>
     <div class="col-md-6 text-end p-2">
         <a href="{{ url_for('students.create') }}" class="btn btn-primary btn-hover">+ Add New Student</a>
+        <a href="{{ url_for('students.export_grade_distribution')}}" class="btn btn-success">
+            Download .csv
+        </a>
     </div>
 </div>
 

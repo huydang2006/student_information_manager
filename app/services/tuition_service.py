@@ -21,11 +21,15 @@ class TuitionService:
     
     @staticmethod
     def delete_tuition(fee_id):
-        """Delete a tuition"""
-
-        Tuition.delete(fee_id)
-        return True, "Student deleted successfully"
-
+        # Gọi xuống Model
+        is_deleted = Tuition.delete(fee_id)
+        
+        if is_deleted:
+            return True, "Xóa học phí thành công!"
+        else:
+            # Thông báo lỗi rõ ràng
+            return False, "Không thể xóa học phí này. Có thể do ID không tồn tại hoặc dữ liệu này đang dính dáng đến các khoản Thanh toán (Payment) đã có."
+        
     @staticmethod
     def update(fee_id, data):
         """Update Tuition"""

@@ -73,12 +73,28 @@ class Tuition:
     
     @staticmethod
     def delete(fee_id):
-        """Delete a tuition"""
         conn = get_connection()
-        cursor = conn.cursor()
-        cursor.execute("DELETE FROM tuition_fee WHERE fee_id = %s", (fee_id,))
-        conn.commit()
-        conn.close()
+        try:
+            cursor = conn.cursor()
+            # Thực thi lệnh xóa
+            cursor.execute("DELETE FROM tuition_fee WHERE fee_id = %s", (fee_id,))
+            conn.commit()
+            
+            rows_deleted = cursor.rowcount
+            cursor.close()
+            conn.close()
+
+            if rows_deleted > 0:
+                return True
+            else:
+                return False
+        except Exception as e:
+            # Nếu lỗi khóa ngoại (do đã có payment), in ra và trả về False
+            print(f"DB Error: {e}")
+            if conn:
+                conn.rollback()
+                conn.close()
+            return False    
 
     @staticmethod
     def update(fee_id, **kwargs):
@@ -145,3 +161,16 @@ class Tuition:
         finally:
             cursor.close()
             conn.close()
+    
+    @staticmethod
+    def get_year():
+        """ Get academic year exits"""
+        conn = get_connection()
+        cursor = conn.cursor(dictionary=True)
+        
+        query = "SELECT DISTINCT academic_year FROM tuition_fee ORDER BY academic_year DESC"
+        
+        cursor.execute(query)
+        data = cursor.fetchall()
+        conn.close()
+        return data

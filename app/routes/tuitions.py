@@ -43,12 +43,24 @@ def search():
 
 @tuitions_bp.route('/delete/<int:fee_id>', methods=['POST'])
 def delete(fee_id):
-    """Delete tuition"""
-    success, message = TuitionService.delete_tuition(fee_id)
-    if success:
-        return jsonify({'success': True, 'message': message})
-    return jsonify({'success': False, 'message': message}), 400
-
+    try:
+        # Gọi Service
+        success, message = TuitionService.delete_tuition(fee_id)
+        
+        if success:
+            return jsonify({'success': True, 'message': message})
+        else:
+            # Trả về lỗi 400 nhưng VẪN LÀ JSON
+            return jsonify({'success': False, 'message': message}), 400
+            
+    except Exception as e:
+        # ĐÂY LÀ CHỖ CỨU CÁNH: Nếu code Python bị crash, nó sẽ nhảy vào đây
+        print(f"CRITICAL ERROR: {e}") # In lỗi ra terminal để bạn debug
+        return jsonify({
+            'success': False, 
+            'message': f"Lỗi Server (500): {str(e)}"
+        }), 500
+    
 @tuitions_bp.route("/payments/<int:fee_id>")
 def get_payment(fee_id):
     payment = Tuition.get_payments(fee_id)
