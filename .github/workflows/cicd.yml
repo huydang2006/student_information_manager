@@ -1,0 +1,67 @@
+name: CI/CD Pipeline
+
+# Kích hoạt khi có code push vào nhánh main hoặc tạo Pull Request
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  # -----------------------------------------------------------------
+  # GIAI ĐOẠN 1: CI - Tích hợp liên tục (Kiểm tra chất lượng code)
+  # -----------------------------------------------------------------
+  test:
+    name: Check Quality (CI)
+    runs-on: ubuntu-latest
+    steps:
+      # 1. Tải code từ kho chứa về máy ảo
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # 2. Cài đặt môi trường Python 3.12 (Khớp với runtime.txt của bạn)
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.12' 
+
+      # 3. Cài đặt các thư viện phụ thuộc
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install flake8 pytest
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+
+      # 4. Kiểm tra lỗi cú pháp bằng Flake8
+      - name: Lint with flake8
+        run: |
+          # Dừng ngay nếu có lỗi cú pháp nghiêm trọng (syntax errors)
+          flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+          # Cảnh báo các lỗi format code (không bắt buộc sửa ngay)
+          flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+
+      # 5. Chạy Test (Tạm thời tắt vì bạn chưa viết test case)
+      # - name: Run Unit Tests
+      #   run: pytest
+
+  # -----------------------------------------------------------------
+  # GIAI ĐOẠN 2: CD - Triển khai liên tục (Đẩy lên Railway)
+  # -----------------------------------------------------------------
+  deploy:
+    name: Deploy to Railway (CD)
+    needs: test  # QUAN TRỌNG: Chỉ chạy nếu giai đoạn 'test' thành công
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push' # Chỉ deploy khi code được merge vào nhánh main
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # Cài đặt công cụ dòng lệnh của Railway
+      - name: Install Railway CLI
+        run: npm install -g @railway/cli
+
+      # Ra lệnh cho Railway deploy service có tên là "web"
+      - name: Deploy
+        run: railway up --service web --detach
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
