@@ -17,6 +17,10 @@ def create_app(config_name=None):
     # Create Flask app
     app = Flask(__name__, template_folder='templates', static_folder='static')
     app.config.from_object(cfg)
+        # --- Chạy init database ngay lập tức ---
+    if os.getenv("INIT_DB", "true") == "true":
+        with app.app_context():
+            init_database()
     
     # Register blueprints
     from app.routes.home import home_bp
@@ -35,15 +39,7 @@ def create_app(config_name=None):
     @app.route('/')
     def home():
         return redirect(url_for('home.describe'))
-    
-    # Chạy init database ngay trong app context
-    with app.app_context():
-        init_database()
-    
-    @app.before_first_request
-    def startup():
-        init_database()
-    
+
     # Error handlers
     @app.errorhandler(404)
     def page_not_found(e):

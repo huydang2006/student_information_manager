@@ -1,38 +1,43 @@
-import mysql.connector
 import os
+from app.connection import get_connection
 
 def run_sql_file(cursor, filename):
-    with open(filename, 'r', encoding='utf-8') as f:
-        sql = f.read()
+    base_dir = os.path.dirname(__file__)
+    filepath = os.path.join(base_dir, filename)
 
-    statements = sql.split(";")
-    for stmt in statements:
-        stmt = stmt.strip()
-        if stmt:
-            cursor.execute(stmt)
+    with open(filepath, "r", encoding="utf-8") as f:
+        sql_commands = f.read()
+
+    for command in sql_commands.split(";"):
+        cmd = command.strip()
+        if cmd:
+            cursor.execute(cmd)
+
+
+def database_has_tables(cursor):
+    """Check if database already has tables"""
+    cursor.execute("SHOW TABLES")
+    tables = cursor.fetchall()
+    return len(tables) > 0
+
 
 def init_database():
-    print("🚀 Initializing database...")
-
-    conn = mysql.connector.connect(
-        host=os.getenv("DB_HOST"),
-        user=os.getenv("DB_USER"),
-        password=os.getenv("DB_PASSWORD"),
-        database=os.getenv("DB_NAME")
-    )
+    conn = get_connection()
     cursor = conn.cursor()
 
-    base = "database"
-    schema = os.path.join(base, "schema.sql")
-    seed = os.path.join(base, "seed.sql")
+    # Nếu database đã có bảng → KHÔNG chạy schema, seed nữa
+    if database_has_tables(cursor):
+        print("✔ Database already initialized. Skipping schema + seed.")
+        cursor.close()
+        conn.close()
+        return
 
-    print("➡ Running schema...")
-    run_sql_file(cursor, schema)
-
-    print("➡ Running seed...")
-    run_sql_file(cursor, seed)
+    # Nếu chưa có bảng → tạo lần đầu
+    print("🚀 Initializing database...")
+    run_sql_file(cursor, "schema.sql")
+    run_sql_file(cursor, "seed.sql")
 
     conn.commit()
     cursor.close()
     conn.close()
-    print("✅ Database initialized successfully!")
+    print("✔ Database initialized successfully.")
