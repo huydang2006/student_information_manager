@@ -36,7 +36,7 @@ The system has been **fully deployed on a production server** and integrated wit
 
 ### 🚀 Try It Now
 - **Demo Server**: *[https://web-production-75f3e.up.railway.app/financial/](https://web-production-75f3e.up.railway.app/financial/)*
-- **YouTube Introduction Video**: *(Insert link here)*
+- **YouTube Introduction Video**: *[https://www.youtube.com/watch?v=i3MQsx_knPE](https://www.youtube.com/watch?v=i3MQsx_knPE)*
 
 ---
 
