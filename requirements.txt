@@ -1,7 +1,7 @@
 flask
 mysql-connector-python
 python-dotenv
-plotly
-gunicorn
 numpy
 pandas
+plotly
+gunicorn
