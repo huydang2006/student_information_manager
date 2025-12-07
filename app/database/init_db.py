@@ -4,34 +4,46 @@ from app.connection import get_connection
 def run_sql_file(cursor, filename, split_by=";"):
     base_dir = os.path.dirname(__file__)
     filepath = os.path.join(base_dir, filename)
-    print(f"   ... Executing {filename}")
+    print(f"   ... Processing {filename}")
     
     try:
         with open(filepath, "r", encoding="utf-8") as f:
-            content = f.read()
+            lines = f.readlines()
 
-        # Tách lệnh ra trước để xử lý từng khối
-        commands = content.split(split_by)
+        # --- BƯỚC 1: LỌC SẠCH FILE (LINE BY LINE) ---
+        clean_lines = []
+        for line in lines:
+            stripped = line.strip()
+            upper_line = stripped.upper()
 
-        for command in commands:
-            cmd = command.strip()
+            # Bỏ qua dòng comment
+            if stripped.startswith("--"):
+                continue
             
-            # --- BỘ LỌC MẠNH MẼ (Command Filter) ---
-            # Bỏ qua bất kỳ lệnh nào cố tình đổi Database
-            cmd_upper = cmd.upper()
-            if cmd_upper.startswith("USE ") or cmd_upper.startswith("CREATE DATABASE"):
-                print(f"   🚫 Skipped forbidden command in {filename}")
+            # Bỏ qua lệnh chuyển Database (Nguyên nhân gây lỗi)
+            if upper_line.startswith("USE ") or upper_line.startswith("CREATE DATABASE"):
                 continue
                 
             # Bỏ qua lệnh DELIMITER (Python không cần)
-            if cmd_upper.startswith("DELIMITER"):
+            if upper_line.startswith("DELIMITER"):
                 continue
 
-            if cmd and not cmd.startswith("--"): 
+            clean_lines.append(line)
+
+        # Ghép lại thành một chuỗi sạch sẽ
+        content = "".join(clean_lines)
+
+        # --- BƯỚC 2: CHẠY LỆNH ---
+        commands = content.split(split_by)
+
+        for command in commands:
+            if command.strip(): # Chỉ chạy nếu lệnh không rỗng
                 try:
-                    cursor.execute(cmd)
+                    cursor.execute(command)
                     while cursor.nextset(): pass
                 except Exception as e:
+                    # In lỗi warning nhưng không dừng chương trình
+                    # (Ví dụ: Lỗi bảng đã tồn tại thì cứ kệ nó)
                     print(f"   ⚠ Note in {filename}: {e}")
 
     except FileNotFoundError:
@@ -42,16 +54,16 @@ def init_database():
     if conn is None: return
 
     cursor = conn.cursor()
-    print("🚀 Forcing full database initialization...")
+    print("🚀 Forcing full database initialization (Final Fix)...")
 
-    # Chạy theo thứ tự, tách lệnh chính xác
+    # Thứ tự chạy file: Schema -> Seed -> Views -> Procedures -> Triggers
     run_sql_file(cursor, "schema.sql", split_by=";")
     run_sql_file(cursor, "seed.sql", split_by=";")
-    run_sql_file(cursor, "views.sql", split_by=";")
+    run_sql_file(cursor, "views.sql", split_by=";")       
     
-    # Procedure và Trigger dùng $$ để tách
-    run_sql_file(cursor, "procedures.sql", split_by="$$")
-    run_sql_file(cursor, "triggers.sql", split_by="$$")
+    # Procedure và Trigger tách bằng $$
+    run_sql_file(cursor, "procedures.sql", split_by="$$") 
+    run_sql_file(cursor, "triggers.sql", split_by="$$")   
 
     conn.commit()
     cursor.close()
